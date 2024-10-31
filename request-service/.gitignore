@@ -1,0 +1,41 @@
+# Node.js modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Frontend build files
+/frontend/build
+/frontend/dist
+
+# Database files
+*.sqlite
+*.db
+*.sql
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore cache and lock files
+*.lock
+.cache/
+
+# Ignore compiled files
+*.out
+*.exe
+*.o
+
+# Ignore temporary files
+*.tmp
+*.temp
