@@ -1,48 +1,3 @@
-// const express = require('express')
-// const nodemailer = require('nodemailer')
-
-// const app = express()
-// app.use(express.json())
-
-// const transporter = nodemailer.createTransport({
-//   service: 'gmail',
-//   auth: {
-//     user: 'faheem@yopmail.com',
-//     pass: 'Bhatti!#$1258'
-//   }
-// })
-
-// // let transporter = nodemailer.createTransport({
-// //   host: 'smtp.ethereal.email',
-// //   port: 587,
-// //   secure: false, // true for 465, false for other ports
-// //   auth: {
-// //     user: 'barry59@ethereal.email', // generated Ethereal user
-// //     pass: 'k4MHkP8aEhZvumdKaw' // generated Ethereal password
-// //   }
-// // })
-
-// app.post('/send-email', (req, res) => {
-//   const { to, subject, text } = req.body
-
-//   const mailOptions = {
-//     from: 'faheemriaz177@gmail.com',
-//     to,
-//     subject,
-//     text
-//   }
-
-//   transporter.sendMail(mailOptions, (error, info) => {
-//     if (error) {
-//       return res.status(500).send(error.toString())
-//     }
-//     res.send('Email sent: ' + info.response)
-//   })
-// })
-// app.get('/', (req, res) => {
-//   res.send('Notification service is running')
-// })
-
 // app.listen(3001, () => console.log('Notification service running on port 3001'))
 const nodemailer = require('nodemailer')
 const { google } = require('googleapis')
@@ -81,7 +36,7 @@ const oAuth2Client = new google.auth.OAuth2(
 )
 oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN })
 
-async function sendEmail (to, subject, text) {
+const sendEmail = async (to, subject, text) => {
   try {
     const accessToken = await oAuth2Client.getAccessToken()
 
@@ -114,16 +69,17 @@ async function sendEmail (to, subject, text) {
   }
 }
 
-app.post('/send-email', async (req, res) => {
-  const { to, subject, text } = req.body
-  try {
-    const emailResult = await sendEmail(to, subject, text)
-    res.status(200).send(`Email sent: ${emailResult.messageId}`)
-    console.log(`Email sent: ${emailResult.messageId}`)
-  } catch (error) {
-    res.status(500).send(`Error sending email: ${error.message}`)
-    console.log(`Error sending email: ${error.message}`)
-  }
-})
+// app.post('/send-email', async (req, res) => {
+//   const { to, subject, text } = req.body
+//   try {
+//     const emailResult = await sendEmail(to, subject, text)
+//     res.status(200).send(`Email sent: ${emailResult.messageId}`)
+//     console.log(`Email sent: ${emailResult.messageId}`)
+//   } catch (error) {
+//     res.status(500).send(`Error sending email: ${error.message}`)
+//     console.log(`Error sending email: ${error.message}`)
+//   }
+// })
 
-app.listen(3001, () => console.log('Server running on port 3001'))
+module.exports = sendEmail
+// app.listen(3001, () => console.log('Server running on port 3001'))

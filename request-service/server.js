@@ -2,6 +2,9 @@ const express = require('express')
 const cors = require('cors')
 const mysql = require('mysql2')
 const bodyParser = require('body-parser')
+const nodemailer = require('nodemailer')
+const { google } = require('googleapis')
+const sendEmail = require('../notification-service/server')
 
 const app = express()
 app.use(cors())
@@ -22,17 +25,29 @@ db.connect(err => {
 // Route to create a new request
 // Create a new request
 app.post('/create-request', (req, res) => {
-  const { title, description, type, urgency, superior_email } = req.body
-  console.log('i am coomming in backend', req.body)
+  const { title, description, type, urgency, superior_email, user_email } =
+    req.body
+
+  const customData = req.headers['x-custom-data']
+
+  console.log('Custom Data:', req.body.userEmail)
+
+  // if (!userEmail) {
+  //   return res.status(400).json({ error: 'User not authenticated' })
+  // }
+
   const query =
-    'INSERT INTO requests (title, description, type, urgency, superior_email, status) VALUES (?, ?, ?, ?, ?, ?)'
+    'INSERT INTO requests (title, description, type, urgency, superior_email, status, user_email) VALUES (?, ?, ?, ?, ?, ?,?)'
   db.query(
     query,
-    [title, description, type, urgency, superior_email, 'Pending'],
+    [title, description, type, urgency, superior_email, 'Pending', user_email],
     (err, result) => {
       if (err) {
         return res.status(500).json({ error: err.message })
       }
+      console.log('usermail', user_email)
+      sendEmail(user_email, 'Request rcv', 'request rcv')
+      sendEmail(superior_email, 'Request sned', 'request sent')
       res.status(201).json({
         message: 'Request created successfully',
         requestId: result.insertId
@@ -45,6 +60,7 @@ app.get('/requests', (req, res) => {
   const query = 'SELECT * FROM requests'
   db.query(query, (err, results) => {
     if (err) {
+      console.log(err)
       return res.status(500).json({ error: err.message })
     }
     res.status(200).json(results)
@@ -81,6 +97,37 @@ app.delete('/requests/:id', (req, res) => {
     res.status(200).json({ message: 'Request deleted successfully' })
   })
 })
+
+function checkAdmin (req, res, next) {
+  const userRole = req.body.userRole // Assume the role is passed in the body for simplicity
+  if (userRole !== 'admin') {
+    return res.status(403).json({ error: 'Access denied: Admins only' })
+  }
+  next()
+}
+
+// API to update the status of a request
+app.patch('/update-status', checkAdmin, (req, res) => {
+  const { requestId, newStatus } = req.body
+
+  // Validate the new status value
+  if (!['approved', 'rejected'].includes(newStatus)) {
+    return res.status(400).json({ error: 'Invalid status value' })
+  }
+
+  // Update the request status in the database
+  const sql = 'UPDATE requests SET status = ? WHERE id = ?'
+  db.query(sql, [newStatus, requestId], (err, result) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' })
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Request not found' })
+    }
+    res.json({ message: 'Request status updated successfully' })
+  })
+})
+
 // Update request status
 app.put('/requests/:id/status', (req, res) => {
   const { id } = req.params

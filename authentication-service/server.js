@@ -6,6 +6,8 @@ const session = require('express-session')
 const { google } = require('googleapis')
 const cors = require('cors') // Import cors
 const mysql = require('mysql2')
+const sendEmail = require('../notification-service/server')
+const nodemailer = require('nodemailer')
 
 // Configure CORS
 app.use(
@@ -20,21 +22,6 @@ app.use(
 app.use(passport.initialize())
 app.use(passport.session())
 
-const CLIENT_ID =
-  '838396296508-mifvtljb51p4ut6lg9fa9ko4h63lqqft.apps.googleusercontent.com'
-const CLIENT_SECRET = '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'
-const REFRESH_TOKEN =
-  '1//04kLmz4izKA6MCgYIARAAGAQSNwF-L9IrAPHCxymag3RbwO4dkr0vwcl_C0S2zQ863Q4mstkqou0Q5XXEX5Qnm4wioykFq23zKa8'
-const ACCESSTOKEN =
-  'ya29.a0AeDClZCKkTkH791-337s5cFlwSgqH8YrgH677Zi6nEbvGY2kxVOxSvmAa7WwLjxDdTfDE6dp1j677UFMp9CStkA2O9YeKppfDce1XVk1n0mMWkiSUMrd10ilSu6PzOxBgF3uL_6dAMY8sPuE-PucXdtO15yyoHRBuuahIOttaCgYKAQASARESFQHGX2MiJNO2R6Zgo4okJaH6TzSLnw0175'
-
-const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
-
-// const CLIENT_ID = 'YOUR_CLIENT_ID'
-// const CLIENT_SECRET = 'YOUR_CLIENT_SECRET'
-// const REDIRECT_URI = 'https://developers.google.com/oauthplayground'
-// const REFRESH_TOKEN = 'YOUR_REFRESH_TOKEN'
-
 // Set up MySQL connection
 const db = mysql.createConnection({
   host: 'localhost',
@@ -48,12 +35,6 @@ db.connect(err => {
   console.log('MySQL connected.')
 })
 
-const oAuth2Client = new google.auth.OAuth2(
-  CLIENT_ID,
-  CLIENT_SECRET,
-  REDIRECT_URI
-)
-oAuth2Client.setCredentials({ refresh_token: REFRESH_TOKEN })
 passport.use(
   new GoogleStrategy(
     {
@@ -71,80 +52,51 @@ passport.use(
 passport.serializeUser((user, done) => done(null, user))
 passport.deserializeUser((obj, done) => done(null, obj))
 
-const nodemailer = require('nodemailer')
-
-// Configure Nodemailer transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail', // or your preferred email provider
-  auth: {
-    user: 'your-email@gmail.com', // Replace with your email
-    pass: 'your-email-password' // Replace with your email password or app-specific password
-  }
-})
-
-// Function to send email
-async function sendEmail (to, subject, text) {
-  try {
-    const accessToken = await oAuth2Client.getAccessToken()
-
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        type: 'OAuth2',
-        user: 'faheemriaz177@gmail.com',
-        clientId:
-          '838396296508-mifvtljb51p4ut6lg9fa9ko4h63lqqft.apps.googleusercontent.com',
-        clientSecret: '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',
-        refreshToken:
-          '1//04kLmz4izKA6MCgYIARAAGAQSNwF-L9IrAPHCxymag3RbwO4dkr0vwcl_C0S2zQ863Q4mstkqou0Q5XXEX5Qnm4wioykFq23zKa8',
-        accessToken:
-          'ya29.a0AeDClZCKkTkH791-337s5cFlwSgqH8YrgH677Zi6nEbvGY2kxVOxSvmAa7WwLjxDdTfDE6dp1j677UFMp9CStkA2O9YeKppfDce1XVk1n0mMWkiSUMrd10ilSu6PzOxBgF3uL_6dAMY8sPuE-PucXdtO15yyoHRBuuahIOttaCgYKAQASARESFQHGX2MiJNO2R6Zgo4okJaH6TzSLnw0175'
-      }
-    })
-
-    const mailOptions = {
-      from: 'your-email@gmail.com',
-      to,
-      subject,
-      text
-    }
-
-    const result = await transporter.sendMail(mailOptions)
-    return result
-  } catch (error) {
-    throw new Error(error)
-  }
-}
-
 app.get(
   '/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 )
+
 app.get(
   '/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
-    // res.redirect('http://localhost:3003/dashboard')
     if (req.user) {
       const google_id = req.user.id
       const email = req.user.emails[0].value
       const name = req.user.displayName
 
-      // Insert user into the database if not already exists
-      const sql =
-        'INSERT INTO users (google_id, email, name) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE email=email'
-      db.query(sql, [google_id, email, name], (err, result) => {
-        if (err) throw err
-        console.log('User saved/exists in DB.')
-      })
+      // Check if this is the first user
+      db.query('SELECT COUNT(*) AS count FROM users', (err, result) => {
+        if (err) {
+          console.error('Error checking user count:', err)
+          return res.status(500).send('Server Error')
+        }
 
-      console.log(req.user, req.user.emails[0].value)
-      if (req.user.emails[0].value) {
-        sendEmail(req.user.emails[0].value)
-        res.redirect('http://localhost:3003/dashboard')
-      }
-    } else {
-      res.redirect('/')
+        // Set the role to 'admin' if this is the first user
+        let role = 'user'
+        if (result[0].count === 0) {
+          role = 'admin'
+        }
+
+        // Insert into the database (with the role)
+        const sql = `INSERT INTO users (google_id, email, name, role) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE email=email`
+        db.query(sql, [google_id, email, name, role], (err, result) => {
+          if (err) {
+            console.error('Error saving user:', err)
+          } else {
+            console.log('User saved/exists in DB.')
+            sendEmail(
+              email,
+              'Successfull Login',
+              'You have logged in successfully'
+            )
+          }
+
+          // Send a redirect with email as query parameter
+          res.redirect(`http://localhost:3003/dashboard?gmail=${email}`)
+        })
+      })
     }
   }
 )
