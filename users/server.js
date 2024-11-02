@@ -29,7 +29,7 @@ db.connect(err => {
 
 // Route to get user by email
 app.get('/user', (req, res) => {
-  console.log('req.query.gmail', req.query)
+  console.log('req.query.gmail', req.query.gmail)
   const email = req.query.gmail // Get email from query parameter
 
   if (!email) {

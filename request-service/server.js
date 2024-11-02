@@ -30,7 +30,7 @@ app.post('/create-request', (req, res) => {
 
   const customData = req.headers['x-custom-data']
 
-  console.log('Custom Data:', req.body.userEmail)
+  console.log('Custom Data:', req.body)
 
   // if (!userEmail) {
   //   return res.status(400).json({ error: 'User not authenticated' })
@@ -47,7 +47,7 @@ app.post('/create-request', (req, res) => {
       }
       console.log('usermail', user_email)
       sendEmail(user_email, 'Request rcv', 'request rcv')
-      sendEmail(superior_email, 'Request sned', 'request sent')
+      sendEmail(superior_email, title, description)
       res.status(201).json({
         message: 'Request created successfully',
         requestId: result.insertId
@@ -67,82 +67,33 @@ app.get('/requests', (req, res) => {
   })
 })
 
-// Get a specific request by ID
-app.get('/requests/:id', (req, res) => {
-  const { id } = req.params
-  const query = 'SELECT * FROM requests WHERE id = ?'
-
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message })
-    }
-    if (results.length === 0) {
-      return res.status(404).json({ message: 'Request not found' })
-    }
-    res.status(200).json(results[0])
-  })
-})
-// Delete a request by ID
-app.delete('/requests/:id', (req, res) => {
-  const { id } = req.params
-  const query = 'DELETE FROM requests WHERE id = ?'
-
-  db.query(query, [id], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message })
-    }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Request not found' })
-    }
-    res.status(200).json({ message: 'Request deleted successfully' })
-  })
-})
-
-function checkAdmin (req, res, next) {
-  const userRole = req.body.userRole // Assume the role is passed in the body for simplicity
-  if (userRole !== 'admin') {
-    return res.status(403).json({ error: 'Access denied: Admins only' })
-  }
-  next()
-}
-
 // API to update the status of a request
-app.patch('/update-status', checkAdmin, (req, res) => {
-  const { requestId, newStatus } = req.body
+app.patch('/update-status', (req, res) => {
+  const { requestId, newStatus, userRole, superiorEmail, userEmail } = req.body
 
+  console.log('requestId, newStatus', req.body)
   // Validate the new status value
-  if (!['approved', 'rejected'].includes(newStatus)) {
-    return res.status(400).json({ error: 'Invalid status value' })
+  if (userRole.includes('admin')) {
+    if (!['approved', 'approved'].includes(newStatus)) {
+      return res.status(400).json({ error: 'Invalid status value' })
+    }
+
+    // Update the request status in the database
+    const sql = 'UPDATE requests SET status = ? WHERE id = ?'
+    db.query(sql, [newStatus, requestId], (err, result) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' })
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: 'Request not found' })
+      }
+      res.json({ message: 'Request status updated successfully' })
+      sendEmail(superiorEmail, `Request ${newStatus}`, `Request ${newStatus}`)
+      sendEmail(userEmail, `Request ${newStatus}`, `Request ${newStatus}`)
+    })
+  } else {
+    return res.status(403).json({ error: 'Forbidden' })
   }
-
-  // Update the request status in the database
-  const sql = 'UPDATE requests SET status = ? WHERE id = ?'
-  db.query(sql, [newStatus, requestId], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: 'Database error' })
-    }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: 'Request not found' })
-    }
-    res.json({ message: 'Request status updated successfully' })
-  })
-})
-
-// Update request status
-app.put('/requests/:id/status', (req, res) => {
-  const { id } = req.params
-  const { status } = req.body // status should be 'Pending', 'Approved', or 'Rejected'
-
-  const query = 'UPDATE requests SET status = ? WHERE id = ?'
-  db.query(query, [status, id], (err, result) => {
-    if (err) {
-      return res.status(500).json({ error: err.message })
-    }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Request not found' })
-    }
-    res.status(200).json({ message: 'Request status updated successfully' })
-  })
 })
 
 // Start the server
