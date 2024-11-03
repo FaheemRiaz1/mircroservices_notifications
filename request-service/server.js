@@ -16,7 +16,7 @@ const JWT_SECRET = process.env.JWT_SECRET
 
 // MySQL Connection
 const db = mysql.createConnection({
-  host: 'localhost',
+  host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME
