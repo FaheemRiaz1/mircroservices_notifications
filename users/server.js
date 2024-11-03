@@ -9,7 +9,6 @@ const jwt = require('jsonwebtoken')
 
 // Initialize Express app
 const app = express()
-
 // Middleware
 app.use(cors())
 app.use(express.json()) // For parsing JSON requests
