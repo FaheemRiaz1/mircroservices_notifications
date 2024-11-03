@@ -5,9 +5,6 @@
 node_modules/
 
 
-# Node.js modules
-node_modules/
-
 # Logs
 logs
 *.log

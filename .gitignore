@@ -1,10 +1,7 @@
-# Ignore actual .env files
+# Ignore keys and environment files
+*.pub
+keys.pub
 *.env
-
-# Optional: node_modules and other dependencies
-node_modules/
-
-# Node.js modules
 node_modules/
 
 # Logs

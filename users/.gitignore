@@ -1,12 +1,9 @@
 # Ignore actual .env files
 *.env
 
+
 # Optional: node_modules and other dependencies
 node_modules/
-
-# Node.js modules
-node_modules/
-
 # Logs
 logs
 *.log
