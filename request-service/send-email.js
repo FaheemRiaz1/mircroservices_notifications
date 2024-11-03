@@ -6,14 +6,11 @@ async function sendEmail (to, subject, text) {
       service: 'gmail',
       auth: {
         type: 'OAuth2',
-        user: 'faheemriaz177@gmail.com',
-        clientId:
-          '838396296508-mifvtljb51p4ut6lg9fa9ko4h63lqqft.apps.googleusercontent.com',
-        clientSecret: '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',
-        refreshToken:
-          '1//04kLmz4izKA6MCgYIARAAGAQSNwF-L9IrAPHCxymag3RbwO4dkr0vwcl_C0S2zQ863Q4mstkqou0Q5XXEX5Qnm4wioykFq23zKa8',
-        accessToken:
-          'ya29.a0AeDClZCKkTkH791-337s5cFlwSgqH8YrgH677Zi6nEbvGY2kxVOxSvmAa7WwLjxDdTfDE6dp1j677UFMp9CStkA2O9YeKppfDce1XVk1n0mMWkiSUMrd10ilSu6PzOxBgF3uL_6dAMY8sPuE-PucXdtO15yyoHRBuuahIOttaCgYKAQASARESFQHGX2MiJNO2R6Zgo4okJaH6TzSLnw0175'
+        user: process.env.GMAIL_USER, // Use email from .env
+        clientId: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        refreshToken: process.env.REFRESH_TOKEN,
+        accessToken: accessToken.token // Use dynamic access token
       }
     })
 
