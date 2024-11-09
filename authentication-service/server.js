@@ -29,7 +29,7 @@ app.use(
 // Initialize Passport and session
 app.use(passport.initialize())
 app.use(passport.session())
-
+console.log(' process.env.DB_HOST', process.env.DB_HOST)
 // MySQL connection setup
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -167,4 +167,6 @@ app.get('/protected-endpoint', (req, res) => {
 })
 
 // Start the server
-app.listen(3000, () => console.log('Auth service running on port 3000'))
+app.listen(3000, () =>
+  console.log('Auth service running on port 3000', process.env.DB_HOST)
+)
