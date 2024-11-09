@@ -10,7 +10,7 @@ const Navigationbar = () => {
       try {
         // Call the backend logout endpoint to invalidate the token
         await axios.post(
-          'http://localhost:3000/logout',
+          `${process.env.REACT_APP_AUTH_SERVICE_URL}/logout`,
           {},
           {
             headers: { Authorization: `Bearer ${token}` }

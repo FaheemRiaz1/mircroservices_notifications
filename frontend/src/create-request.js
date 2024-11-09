@@ -74,9 +74,10 @@ const CreateRequest = () => {
 
     if (validateForm()) {
       try {
+        console.log('REQUEST_SERVICE_URLREQUEST_SERVICE_URL', process.env)
         const token = localStorage.getItem('token')
         const response = await axios.post(
-          'http://localhost:3002/create-request',
+          `${process.env.REACT_APP_REQUEST_SERVICE_URL}/create-request`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         )

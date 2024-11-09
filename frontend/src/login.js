@@ -24,7 +24,7 @@ const Login = () => {
 
   // Function to initiate Google login
   const handleLogin = () => {
-    window.location.href = 'http://localhost:3000/auth/google'
+    window.location.href = `${process.env.REACT_APP_AUTH_SERVICE_URL}/auth/google`
   }
 
   // Typewriter Effect Component

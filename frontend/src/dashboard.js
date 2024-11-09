@@ -107,7 +107,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (token) {
       axios
-        .get('http://localhost:3000/protected-endpoint', {
+        .get(`${process.env.REACT_APP_AUTH_SERVICE_URL}/protected-endpoint`, {
           headers: {
             Authorization: `Bearer ${token}` // Set token in Authorization header
           }
@@ -125,9 +125,12 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token')
-        const response = await axios.get('http://localhost:3002/requests', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const response = await axios.get(
+          `${process.env.REACT_APP_REQUEST_SERVICE_URL}/requests`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        )
 
         // Count requests based on their status
         const requests = response.data

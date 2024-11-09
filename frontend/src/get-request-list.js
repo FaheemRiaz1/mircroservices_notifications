@@ -26,7 +26,7 @@ const RequestList = () => {
     try {
       const token = localStorage.getItem('token') // Get token from localStorage
       const response = await axios.patch(
-        'http://localhost:3002/update-status',
+        `${process.env.REACT_APP_REQUEST_SERVICE_URL}/update-status`,
         {
           requestId,
           newStatus,
@@ -57,11 +57,14 @@ const RequestList = () => {
         return
       }
 
-      const response = await axios.get('http://localhost:3002/requests', {
-        headers: {
-          Authorization: `Bearer ${token}` // Pass the token in Authorization header
+      const response = await axios.get(
+        `${process.env.REACT_APP_REQUEST_SERVICE_URL}/requests`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}` // Pass the token in Authorization header
+          }
         }
-      })
+      )
       setRequests(response.data)
     } catch (error) {
       setAlert({
@@ -75,9 +78,12 @@ const RequestList = () => {
   const fetchUserData = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await axios.get('http://localhost:3001/user', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await axios.get(
+        `${process.env.REACT_APP_USER_URL}/user`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      )
       setUser(response.data)
     } catch (error) {
       setAlert({

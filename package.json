@@ -8,5 +8,14 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.11.3",
     "react-router-dom": "^6.27.0"
-  }
+  },
+  
+    "scripts": {
+      "start-authentication": "npm --prefix authentication-service run start-authentication",
+      "start-notification": "npm --prefix notification-service run start-notification",
+      "start-request": "npm --prefix request-service run start-request"
+    }
+  
+  
+
 }
