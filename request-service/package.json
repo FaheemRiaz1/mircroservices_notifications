@@ -6,7 +6,7 @@
     "mongoose": "^8.7.3",
     "mysql2": "^3.11.3",
     "nodemailer": "^6.9.16"
-  },
+    },
   "scripts": {
   "start": "node server.js"
 }

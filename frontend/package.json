@@ -19,7 +19,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "serve -s build",
+    "start": "react-scripts start",
+
     "build": "react-scripts build",
     "test": "react-scripts test",
     
@@ -41,11 +42,7 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
-    ],
-    "engines": {
-  "node": "16.x",
-  "npm": "8.x"
-}
+    ]
 
   }
 }
