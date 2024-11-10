@@ -5,6 +5,8 @@
 node_modules/
 
 
+server.key
+server.cert
 
 
 # Logs

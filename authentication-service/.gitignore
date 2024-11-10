@@ -4,6 +4,8 @@
 # Optional: node_modules and other dependencies
 node_modules/
 
+server.key
+server.cert
 
 # Logs
 logs
